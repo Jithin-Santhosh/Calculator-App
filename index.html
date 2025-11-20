@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classy Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="calculator">
+    <div class="screen">
+      <div id="expression" class="expression"></div>
+      <input type="text" id="display" disabled />
+    </div>
+    <div class="buttons">
+      <button onclick="appendNumber('7')">7</button>
+      <button onclick="appendNumber('8')">8</button>
+      <button onclick="appendNumber('9')">9</button>
+      <button onclick="setOperator('/') " class="operator">÷</button>
+
+      <button onclick="appendNumber('4')">4</button>
+      <button onclick="appendNumber('5')">5</button>
+      <button onclick="appendNumber('6')">6</button>
+      <button onclick="setOperator('*')" class="operator">×</button>
+
+      <button onclick="appendNumber('1')">1</button>
+      <button onclick="appendNumber('2')">2</button>
+      <button onclick="appendNumber('3')">3</button>
+      <button onclick="setOperator('-')" class="operator">−</button>
+
+      <button onclick="appendNumber('0')">0</button>
+      <button onclick="appendNumber('.')">.</button>
+      <button onclick="calculate()" class="operator">=</button>
+      <button onclick="setOperator('+')" class="operator">+</button>
+
+      <button onclick="clearDisplay()" class="clear" style="grid-column: span 4;">Clear</button>
+    </div>
+  </div>
+  <script>
+    let currentInput = '';
+    let operator = null;
+    let previousInput = '';
+    let expressionString = '';
+    let lastResult = null;
+
+    function updateDisplay() {
+      document.getElementById('display').value = currentInput;
+      document.getElementById('expression').textContent = expressionString;
+    }
+
+    function appendNumber(number) {
+      if (lastResult !== null && currentInput === '') {
+        currentInput = '';
+        expressionString = '';
+        lastResult = null;
+      }
+      if (number === '.' && currentInput.includes('.')) return;
+      currentInput += number;
+      expressionString += number;
+      updateDisplay();
+    }
+
+    function setOperator(op) {
+      if (currentInput === '' && lastResult !== null) {
+        previousInput = lastResult;
+        operator = op;
+        expressionString = previousInput + op;
+        lastResult = null;
+        updateDisplay();
+        return;
+      }
+      if (operator !== null && currentInput === '') {
+        expressionString = expressionString.slice(0, -1) + op;
+        operator = op;
+        updateDisplay();
+        return;
+      }
+      if (previousInput !== '' && operator !== null && currentInput !== '') {
+        calculate(false);
+      }
+      operator = op;
+      previousInput = currentInput;
+      expressionString += op;
+      currentInput = '';
+      updateDisplay();
+    }
+
+    function calculate(showResult = true) {
+      let result;
+      const prev = parseFloat(previousInput);
+      const current = parseFloat(currentInput);
+      if (isNaN(prev) || isNaN(current)) return;
+
+      switch (operator) {
+        case '+': result = prev + current; break;
+        case '-': result = prev - current; break;
+        case '*': result = prev * current; break;
+        case '/':
+          if (current === 0) {
+            alert("Can't divide by zero");
+            clearDisplay();
+            return;
+          }
+          result = prev / current; break;
+        default: return;
+      }
+      currentInput = result.toString();
+      lastResult = currentInput;
+      operator = null;
+      previousInput = '';
+      expressionString = '';
+      updateDisplay();
+    }
+
+    function clearDisplay() {
+      currentInput = '';
+      previousInput = '';
+      operator = null;
+      expressionString = '';
+      lastResult = null;
+      updateDisplay();
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', function (e) {
+      if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+        appendNumber(e.key);
+        e.preventDefault();
+      }
+      if (['+', '-', '*', '/'].includes(e.key)) {
+        setOperator(e.key);
+        e.preventDefault();
+      }
+      if (e.key === 'Enter' || e.key === '=') {
+        calculate();
+        e.preventDefault();
+      }
+      if (e.key === 'Escape') {
+        clearDisplay();
+        e.preventDefault();
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
